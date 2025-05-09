@@ -1,21 +1,60 @@
 spring:
-  application.name: resilience4j-demo
-  jackson.serialization.indent_output: true
+  application:
+    name: resilience4j-demo
+  jackson:
+    serialization:
+      indent_output: true
+
+server:
+  port: 8080
 
 management:
-  endpoints.web.exposure.include:
-    - '*'
-  endpoint.health.show-details: always
-  health.circuitbreakers.enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
 
-resilience4j.circuitbreaker:
-  configs:
-    default:
-      registerHealthIndicator: true
-      slidingWindowSize: 10
-      minimumNumberOfCalls: 5
-      permittedNumberOfCallsInHalfOpenState: 3
-      automaticTransitionFromOpenToHalfOpenEnabled: true
-      waitDurationInOpenState: 5s
-      failureRateThreshold: 50
-      eventConsumerBufferSize: 10
+resilience4j:
+  circuitbreaker:
+    configs:
+      defaultCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+    instances:
+      randomActivity:
+        baseConfig: defaultCircuitBreaker
+
+  retry:
+    configs:
+      defaultRetry:
+        maxRetryAttempts: 3
+        waitDuration: 1s
+        retryExceptions:
+          - java.lang.RuntimeException
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.client.HttpServerErrorException$ServiceUnavailable
+        ignoreExceptions:
+          - java.lang.IllegalArgumentException
+    instances:
+      randomActivity:
+        baseConfig: defaultRetry
+
+
+logging:
+  level:
+    io: DEBUG
+    org.springframework: INFO
+    com.example.resilience4j: DEBUG
